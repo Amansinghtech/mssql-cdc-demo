@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+    mssql:
+      image: mcr.microsoft.com/mssql/server:2022-latest
+      container_name: mssql_server
+      restart: always
+      ports:
+        - "1433:1433"
+      environment:
+        SA_PASSWORD: "YourStrong!Passw0rd"
+        ACCEPT_EULA: "Y"
+        MSSQL_AGENT_ENABLED: "True"
+    
+    redpanda:
+        container_name: redpanda
+        image: docker.redpanda.com/redpandadata/console:latest
+        ports:
+            - 8080:8080
+        environment:
+            - KAFKA_BROKERS=kafka:9092
+        depends_on:
+            - kafka
+
+    connect:
+        image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
+        ports:
+            - 8083:8083
+        links:
+            - kafka
+        environment:
+            - BOOTSTRAP_SERVERS=kafka:9092
+            - GROUP_ID=1
+            - CONFIG_STORAGE_TOPIC=my_connect_configs
+            - OFFSET_STORAGE_TOPIC=my_connect_offsets
+            - STATUS_STORAGE_TOPIC=my_connect_statuses
+
+    zookeeper:
+        image: quay.io/debezium/zookeeper:${DEBEZIUM_VERSION}
+        ports:
+            - 2181:2181
+            - 2888:2888
+            - 3888:3888
+    kafka:
+        image: quay.io/debezium/kafka:${DEBEZIUM_VERSION}
+        ports:
+            - 9092:9092
+        links:
+            - zookeeper
+        environment:
+            - ZOOKEEPER_CONNECT=zookeeper:2181
+
+
