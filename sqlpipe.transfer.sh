@@ -1,1 +1,1 @@
-curl -d @samples/cmaConfig.json localhost:9000/transfers/create
+curl -d @samples/localConfig.json localhost:9000/transfers/create
